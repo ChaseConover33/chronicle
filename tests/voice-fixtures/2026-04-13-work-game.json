@@ -1,0 +1,35 @@
+{
+  "name": "April 13 — The game of work",
+  "notes": "Chase's real writing. Tests lowercase god/capital one, 'pipped' (not 'PIP'd'), M-F, 175k, 'Lets' without apostrophe, second-person self-address.",
+  "sections": [
+    {
+      "heading": "What Happened",
+      "rawText": "You may think it's stupid to dress nicely and you may see through it when others dress nicely, but if you are the best dressed in the room and well groomed, it comes with power. Conversely, if you are poorly dressed, you will feel less powerful and people may treat you poorly. For the 3 days of the week you are in office, consider dressing in no less than a polo, but go for a nice button down shirt most days\nThings you will be evaluated on:\n- Productivity & Visible Impact: It doesn't just matter what you do, but how much business impact the work you did has\n- Appearance\nDress sharp. \nButton down shirt\n\nSteps to break out of the system, or at least try my best to, while maintaining focus on what matters most, connecting with god and accomplishing something with him\n\nFigure out how capital one tracks productivity. Capital one has been known to lay off the bottom 15% of workers semi-annually. You get pipped and then fired. Make sure you stay above that threshold at a minimum. \nM-F at minimum you work 12 hour days. Get what you need to done at Capital One and then work for yourself, just as hard."
+    },
+    {
+      "heading": "What I Learned",
+      "rawText": "Justification: \nWith a salary of 175k, you are in the top 1% of the global population. You should fight to maintain that\nFor a HOUSEHOLD in the US, you are in the top 10-15% of earners. You should fight hard to protect that . Lets go ahead and do A"
+    }
+  ],
+  "must_contain": [
+    "connecting with god",
+    "capital one tracks productivity",
+    "pipped",
+    "M-F at minimum",
+    "175k",
+    "Lets go ahead",
+    "You should fight to maintain",
+    "HOUSEHOLD"
+  ],
+  "must_not_contain": [
+    "connecting with God",
+    "Capital One tracks productivity",
+    "put on a PIP",
+    "Put on a PIP",
+    "Monday through Friday",
+    "$175,000",
+    "$175k",
+    "Let's go ahead",
+    "I should fight to maintain"
+  ]
+}
