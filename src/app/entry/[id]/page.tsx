@@ -3,9 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { db } from "@/db";
 import { domains, entries, entryDomains, tags } from "@/db/schema";
+import { CleanupPanel } from "./cleanup-panel";
 
 export default async function EntryPage({
   params,
@@ -65,13 +65,7 @@ export default async function EntryPage({
         <h1 className="text-3xl font-semibold tracking-tight">{entry.date}</h1>
       </header>
 
-      {!entry.formattedContent && (
-        <Card className="mb-6 border-dashed bg-muted/40">
-          <CardContent className="p-4 text-sm text-muted-foreground">
-            This entry hasn't been through AI cleanup yet. Showing the raw text.
-          </CardContent>
-        </Card>
-      )}
+      {!entry.formattedContent && <CleanupPanel entryId={entry.id} />}
 
       <article
         className="
