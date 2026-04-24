@@ -11,7 +11,7 @@ Complete specification for Chronicle v1 — every feature, every API, every view
 | **Framework** | Next.js 15 (App Router) | SSR for public pages, API routes for backend, one deployment unit |
 | **UI Components** | shadcn/ui | Pre-built calendar, cards, dialogs, tabs, forms, sidebar |
 | **Styling** | Tailwind CSS | Utility-class styling, consistent design, fast iteration |
-| **Editor** | MDXEditor or Milkdown | Markdown-aware rich text editor with toolbar |
+| **Editor** | *Deferred* — plain `<textarea>` for Phase 1 | Phase 1 ships with plain textareas per template section. AI cleanup turns raw text into formatted markdown, so a rich editor isn't required for the data flow. Evaluate MDXEditor vs Milkdown in Phase 2 once the write/save loop is proven. |
 | **Database** | SQLite via better-sqlite3 | Single-file, zero-config, trivial backup |
 | **ORM** | Drizzle ORM | Type-safe queries, lightweight, SQLite-native |
 | **AI** | Claude API (@anthropic-ai/sdk) | Entry cleanup, summarization, cross-referencing, lens analysis |
@@ -519,11 +519,12 @@ This keeps the markdown clean and human-readable while letting the database hand
 
 ### Phase 2 — Organization
 
-6. Domain tagging (at write time + AI suggestions)
-7. Tag system
-8. Link attachment
-9. Search with filters
-10. Dashboard
+6. **Pick and integrate a markdown editor** (deferred from Phase 1) — evaluate MDXEditor vs Milkdown, replace plain textareas
+7. Domain tagging (at write time + AI suggestions)
+8. Tag system
+9. Link attachment
+10. Search with filters
+11. Dashboard
 
 ### Phase 3 — AI Analysis
 
