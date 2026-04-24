@@ -39,3 +39,6 @@ yarn-error.log*
 
 # Chronicle
 /data/
+
+# Claude Code session state
+/.claude/scheduled_tasks.lock
