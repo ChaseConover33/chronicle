@@ -39,8 +39,10 @@ export async function POST(request: Request) {
     availableDomains = rows;
   }
 
+  const modelId = typeof body.model_id === "string" ? body.model_id : undefined;
+
   try {
-    const result = await cleanupBraindump(rawText, availableDomains);
+    const result = await cleanupBraindump(rawText, availableDomains, modelId);
     return NextResponse.json({
       formatted_content: result.formattedContent,
       suggested_domain_ids: result.suggestedDomainIds,

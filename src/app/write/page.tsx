@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { WriteForm } from "./write-form";
 
 export default async function WritePage({
@@ -10,6 +11,20 @@ export default async function WritePage({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
+      <div className="mb-8 flex items-center justify-between gap-3">
+        <Link
+          href="/"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← Back
+        </Link>
+        <Link
+          href="/settings"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          Settings
+        </Link>
+      </div>
       <h1 className="mb-8 text-3xl font-semibold tracking-tight">New Entry</h1>
       <WriteForm initialDate={initialDate} />
     </div>

@@ -18,11 +18,19 @@ export default async function Home() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-10 px-6 py-16">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-4xl font-semibold tracking-tight">Chronicle</h1>
-        <p className="text-muted-foreground">
-          A life reflection system disguised as a journal.
-        </p>
+      <header className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-4xl font-semibold tracking-tight">Chronicle</h1>
+          <p className="text-muted-foreground">
+            A life reflection system disguised as a journal.
+          </p>
+        </div>
+        <Link
+          href="/settings"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          Settings
+        </Link>
       </header>
 
       <section className="flex flex-col gap-3">

@@ -4,7 +4,7 @@ import { asc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { domains, entries, entryDomains } from "@/db/schema";
-import { cleanupBraindump } from "@/lib/cleanup";
+import { cleanupBraindump, refineCleanup } from "@/lib/cleanup";
 
 export type CleanupActionResult =
   | {
@@ -16,6 +16,7 @@ export type CleanupActionResult =
 
 export async function generateCleanupAction(
   entryId: string,
+  modelId?: string,
 ): Promise<CleanupActionResult> {
   try {
     const entry = db.select().from(entries).where(eq(entries.id, entryId)).get();
@@ -32,7 +33,46 @@ export async function generateCleanupAction(
       .orderBy(asc(domains.sortOrder))
       .all();
 
-    const result = await cleanupBraindump(rawText, availableDomains);
+    const result = await cleanupBraindump(rawText, availableDomains, modelId);
+    return {
+      ok: true,
+      formattedContent: result.formattedContent,
+      suggestedDomainIds: result.suggestedDomainIds,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: message };
+  }
+}
+
+export async function refineCleanupAction(
+  entryId: string,
+  previousFormatted: string,
+  userNote: string,
+  modelId?: string,
+): Promise<CleanupActionResult> {
+  try {
+    const entry = db.select().from(entries).where(eq(entries.id, entryId)).get();
+    if (!entry) return { ok: false, error: "entry not found" };
+
+    const rawText = entry.rawText ?? "";
+    if (rawText.trim().length === 0) {
+      return { ok: false, error: "entry has no content to clean up" };
+    }
+
+    const availableDomains = db
+      .select({ id: domains.id, name: domains.name })
+      .from(domains)
+      .orderBy(asc(domains.sortOrder))
+      .all();
+
+    const result = await refineCleanup(
+      rawText,
+      previousFormatted,
+      userNote,
+      availableDomains,
+      modelId,
+    );
     return {
       ok: true,
       formattedContent: result.formattedContent,

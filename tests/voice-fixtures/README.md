@@ -57,6 +57,6 @@ The file name itself is free-form — use a date + short slug like `2026-05-03-m
 1. Start the dev server in one terminal: `npm run dev`
 2. In another: `npm run voice:check`
 
-The runner hits `http://localhost:3000/api/process/cleanup`, so Chronicle must be running. Each fixture costs one Claude API call (~$0.02 at current Opus 4.7 pricing); the prompt cache amortizes this across fixtures in a 5-minute window.
+The runner hits `http://localhost:3000/api/process/cleanup`, so Chronicle must be running. Each fixture costs one Claude API call (~$0.005 at current Sonnet 4.6 pricing); the prompt cache amortizes this across fixtures in a 5-minute window.
 
 Exit code is 0 if all pass, 1 if any fail. Failure output shows which assertion broke and a 300-char excerpt of the cleanup output around it.

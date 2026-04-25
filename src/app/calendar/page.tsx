@@ -37,16 +37,24 @@ export default async function CalendarPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex items-center justify-between gap-3">
         <Link
           href="/"
           className="text-sm text-muted-foreground hover:text-foreground"
         >
           ← Back
         </Link>
-        <Link href="/write" className={buttonVariants({ variant: "outline" })}>
-          New entry
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/settings"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Settings
+          </Link>
+          <Link href="/write" className={buttonVariants({ variant: "outline" })}>
+            New entry
+          </Link>
+        </div>
       </div>
 
       <header className="mb-8">

@@ -18,6 +18,16 @@ const FIXTURE_DIR = join(process.cwd(), "tests", "voice-fixtures");
 const ENDPOINT =
   process.env.CHRONICLE_URL ?? "http://localhost:3000/api/process/cleanup";
 
+function parseModelArg(): string | undefined {
+  const flag = process.argv.find((a) => a.startsWith("--model="));
+  if (flag) return flag.slice("--model=".length);
+  const idx = process.argv.indexOf("--model");
+  if (idx !== -1 && process.argv[idx + 1]) return process.argv[idx + 1];
+  return undefined;
+}
+
+const MODEL_OVERRIDE = parseModelArg();
+
 const GREEN = "\x1b[32m";
 const RED = "\x1b[31m";
 const DIM = "\x1b[2m";
@@ -45,6 +55,7 @@ async function runCleanup(f: Fixture): Promise<CleanupResponse> {
     body: JSON.stringify({
       raw_text: f.raw_text,
       available_domains: f.available_domains,
+      ...(MODEL_OVERRIDE ? { model_id: MODEL_OVERRIDE } : {}),
     }),
   });
   if (!response.ok) {
@@ -110,7 +121,7 @@ async function main() {
   }
 
   console.log(
-    `${BOLD}Voice check${RESET} — ${fixtures.length} fixture${fixtures.length === 1 ? "" : "s"}\n`,
+    `${BOLD}Voice check${RESET} — ${fixtures.length} fixture${fixtures.length === 1 ? "" : "s"}${MODEL_OVERRIDE ? ` ${DIM}(model=${MODEL_OVERRIDE})${RESET}` : ""}\n`,
   );
 
   const results: CheckResult[] = [];
