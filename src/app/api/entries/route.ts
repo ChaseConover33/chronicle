@@ -9,11 +9,18 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+  const rawText = typeof body.rawText === "string" ? body.rawText : "";
+  if (!rawText.trim()) {
+    return NextResponse.json(
+      { error: "rawText is required" },
+      { status: 400 },
+    );
+  }
   const id = createEntry({
     date: body.date,
     type: body.type,
     templateId: body.templateId,
-    sectionContent: body.sectionContent ?? {},
+    rawText,
     domainIds: body.domainIds ?? [],
   });
   return NextResponse.json({ id }, { status: 201 });

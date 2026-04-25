@@ -1,18 +1,21 @@
-import { eq, inArray } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import ReactMarkdown from "react-markdown";
 import { buttonVariants } from "@/components/ui/button";
 import { db } from "@/db";
 import { domains, entries, entryDomains, tags } from "@/db/schema";
 import { CleanupPanel } from "./cleanup-panel";
+import { EntryArticle } from "./entry-article";
 
 export default async function EntryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ autoclean?: string }>;
 }) {
   const { id } = await params;
+  const sp = await searchParams;
   const entry = db.select().from(entries).where(eq(entries.id, id)).get();
   if (!entry) notFound();
 
@@ -38,7 +41,14 @@ export default async function EntryPage({
 
   const entryTags = db.select().from(tags).where(eq(tags.entryId, id)).all();
 
-  const content = entry.formattedContent ?? entry.rawText ?? "";
+  const allDomains = db
+    .select()
+    .from(domains)
+    .orderBy(asc(domains.sortOrder))
+    .all();
+
+  const showCleanupPanel = !entry.formattedContent;
+  const autoStart = sp.autoclean === "1";
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
@@ -65,30 +75,18 @@ export default async function EntryPage({
         <h1 className="text-3xl font-semibold tracking-tight">{entry.date}</h1>
       </header>
 
-      {!entry.formattedContent && <CleanupPanel entryId={entry.id} />}
+      {showCleanupPanel && (
+        <CleanupPanel
+          entryId={entry.id}
+          domains={allDomains}
+          autoStart={autoStart}
+        />
+      )}
 
-      <article
-        className="
-          max-w-none leading-7
-          [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:text-2xl [&_h1]:font-semibold
-          [&_h2]:mt-6 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold
-          [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-lg [&_h3]:font-medium
-          [&_p]:my-3
-          [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6
-          [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6
-          [&_li]:my-1
-          [&_a]:text-primary [&_a]:underline
-          [&_blockquote]:border-l-2 [&_blockquote]:border-muted-foreground/40 [&_blockquote]:pl-4 [&_blockquote]:italic
-          [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm
-          [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-muted [&_pre]:p-3
-        "
-      >
-        {content ? (
-          <ReactMarkdown>{content}</ReactMarkdown>
-        ) : (
-          <p className="text-muted-foreground italic">No content.</p>
-        )}
-      </article>
+      <EntryArticle
+        formattedContent={entry.formattedContent}
+        rawText={entry.rawText}
+      />
 
       {(entryDomainList.length > 0 || entryTags.length > 0) && (
         <aside className="mt-10 flex flex-col gap-4 border-t pt-6">

@@ -6,24 +6,19 @@ import { createEntry } from "@/lib/entries";
 
 export async function saveDraftEntry(formData: FormData) {
   const date = String(formData.get("date") ?? "");
-  const templateId = String(formData.get("templateId") ?? "");
-  const sectionKeys = formData.getAll("sectionKey").map(String);
-  const domainIds = formData.getAll("domainId").map(String);
+  const rawText = String(formData.get("rawText") ?? "").trim();
 
-  const sectionContent: Record<string, string> = {};
-  for (const key of sectionKeys) {
-    sectionContent[key] = String(formData.get(`section:${key}`) ?? "");
+  if (!date || !rawText) {
+    redirect("/write");
   }
 
   const id = createEntry({
     date,
     type: "daily",
-    templateId: templateId || undefined,
-    sectionContent,
-    domainIds,
+    rawText,
   });
 
   revalidatePath("/");
   revalidatePath("/calendar");
-  redirect(`/entry/${id}`);
+  redirect(`/entry/${id}?autoclean=1`);
 }

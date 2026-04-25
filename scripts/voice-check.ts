@@ -1,12 +1,17 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
+type AvailableDomain = { id: string; name: string };
+
 type Fixture = {
   name: string;
   notes?: string;
-  sections: { heading: string; rawText: string }[];
+  raw_text: string;
+  available_domains: AvailableDomain[];
   must_contain: string[];
   must_not_contain: string[];
+  must_contain_domains?: string[];
+  must_not_contain_domains?: string[];
 };
 
 const FIXTURE_DIR = join(process.cwd(), "tests", "voice-fixtures");
@@ -28,18 +33,25 @@ function loadFixtures(): { path: string; fixture: Fixture }[] {
   });
 }
 
-async function runCleanup(f: Fixture): Promise<string> {
+type CleanupResponse = {
+  formatted_content: string;
+  suggested_domain_ids: string[];
+};
+
+async function runCleanup(f: Fixture): Promise<CleanupResponse> {
   const response = await fetch(ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sections: f.sections }),
+    body: JSON.stringify({
+      raw_text: f.raw_text,
+      available_domains: f.available_domains,
+    }),
   });
   if (!response.ok) {
     const body = await response.text();
     throw new Error(`HTTP ${response.status}: ${body}`);
   }
-  const data = (await response.json()) as { formattedContent: string };
-  return data.formattedContent;
+  return (await response.json()) as CleanupResponse;
 }
 
 function excerpt(haystack: string, needle: string): string {
@@ -56,8 +68,11 @@ type CheckResult = {
   failures: string[];
 };
 
-function checkFixture(f: Fixture, output: string): CheckResult {
+function checkFixture(f: Fixture, response: CleanupResponse): CheckResult {
   const failures: string[] = [];
+  const output = response.formatted_content;
+  const domainSet = new Set(response.suggested_domain_ids);
+
   for (const token of f.must_contain) {
     if (!output.includes(token)) {
       failures.push(`  ${RED}✗${RESET} missing: ${JSON.stringify(token)}`);
@@ -67,6 +82,20 @@ function checkFixture(f: Fixture, output: string): CheckResult {
     if (output.includes(token)) {
       failures.push(
         `  ${RED}✗${RESET} should not contain: ${JSON.stringify(token)}\n    at: ${DIM}${excerpt(output, token)}${RESET}`,
+      );
+    }
+  }
+  for (const id of f.must_contain_domains ?? []) {
+    if (!domainSet.has(id)) {
+      failures.push(
+        `  ${RED}✗${RESET} expected domain not suggested: ${JSON.stringify(id)} (got: ${JSON.stringify([...domainSet])})`,
+      );
+    }
+  }
+  for (const id of f.must_not_contain_domains ?? []) {
+    if (domainSet.has(id)) {
+      failures.push(
+        `  ${RED}✗${RESET} unexpected domain suggested: ${JSON.stringify(id)}`,
       );
     }
   }
@@ -88,8 +117,8 @@ async function main() {
   for (const { path, fixture } of fixtures) {
     process.stdout.write(`  ${fixture.name} ${DIM}(${path})${RESET} ... `);
     try {
-      const output = await runCleanup(fixture);
-      const result = checkFixture(fixture, output);
+      const response = await runCleanup(fixture);
+      const result = checkFixture(fixture, response);
       results.push(result);
       if (result.passed) {
         console.log(`${GREEN}pass${RESET}`);

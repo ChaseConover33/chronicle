@@ -7,20 +7,12 @@ export type CreateEntryInput = {
   date: string;
   type: NewEntry["type"];
   templateId?: string;
-  sectionContent: Record<string, string>;
+  rawText: string;
   domainIds?: string[];
 };
 
-function buildRawText(sectionContent: Record<string, string>): string {
-  return Object.entries(sectionContent)
-    .filter(([, v]) => v.trim().length > 0)
-    .map(([id, v]) => `# ${id}\n\n${v.trim()}`)
-    .join("\n\n");
-}
-
 export function createEntry(input: CreateEntryInput): string {
   const id = randomUUID();
-  const rawText = buildRawText(input.sectionContent);
 
   db.transaction((tx) => {
     tx.insert(entries)
@@ -30,7 +22,7 @@ export function createEntry(input: CreateEntryInput): string {
         type: input.type,
         status: "draft",
         template: input.templateId ?? null,
-        rawText,
+        rawText: input.rawText,
         formattedContent: null,
       })
       .run();
