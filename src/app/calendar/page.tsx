@@ -46,6 +46,12 @@ export default async function CalendarPage() {
         </Link>
         <div className="flex items-center gap-3">
           <Link
+            href="/search"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Search
+          </Link>
+          <Link
             href="/settings"
             className="text-sm text-muted-foreground hover:text-foreground"
           >

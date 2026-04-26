@@ -4,8 +4,14 @@ import { notFound } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { db } from "@/db";
 import { domains, entries, entryDomains, tags } from "@/db/schema";
+import {
+  PROVIDERS,
+  checkApiProviderAvailability,
+  type ProviderId,
+} from "@/lib/models";
 import { CleanupPanel } from "./cleanup-panel";
 import { EntryArticle } from "./entry-article";
+import { RelatedEntries } from "./related-entries";
 
 export default async function EntryPage({
   params,
@@ -50,6 +56,13 @@ export default async function EntryPage({
   const showCleanupPanel = !entry.formattedContent;
   const autoStart = sp.autoclean === "1";
 
+  const apiProviderIds = (Object.keys(PROVIDERS) as ProviderId[]).filter(
+    (id) => !PROVIDERS[id].isLocal,
+  );
+  const availableProviders = apiProviderIds.filter(
+    (id) => checkApiProviderAvailability(id).available,
+  );
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
       <div className="mb-8 flex items-center justify-between gap-3">
@@ -60,6 +73,12 @@ export default async function EntryPage({
           ← Back
         </Link>
         <div className="flex items-center gap-3">
+          <Link
+            href="/search"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Search
+          </Link>
           <Link
             href="/settings"
             className="text-sm text-muted-foreground hover:text-foreground"
@@ -88,6 +107,7 @@ export default async function EntryPage({
           entryId={entry.id}
           domains={allDomains}
           autoStart={autoStart}
+          availableProviders={availableProviders}
         />
       )}
 
@@ -95,6 +115,10 @@ export default async function EntryPage({
         formattedContent={entry.formattedContent}
         rawText={entry.rawText}
       />
+
+      {entry.formattedContent && entryDomainList.length > 0 && (
+        <RelatedEntries entryId={entry.id} />
+      )}
 
       {(entryDomainList.length > 0 || entryTags.length > 0) && (
         <aside className="mt-10 flex flex-col gap-4 border-t pt-6">

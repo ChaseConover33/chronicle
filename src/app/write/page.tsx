@@ -18,12 +18,20 @@ export default async function WritePage({
         >
           ← Back
         </Link>
-        <Link
-          href="/settings"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Settings
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/search"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Search
+          </Link>
+          <Link
+            href="/settings"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Settings
+          </Link>
+        </div>
       </div>
       <h1 className="mb-8 text-3xl font-semibold tracking-tight">New Entry</h1>
       <WriteForm initialDate={initialDate} />

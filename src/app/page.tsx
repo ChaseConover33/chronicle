@@ -25,12 +25,20 @@ export default async function Home() {
             A life reflection system disguised as a journal.
           </p>
         </div>
-        <Link
-          href="/settings"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Settings
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/search"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Search
+          </Link>
+          <Link
+            href="/settings"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Settings
+          </Link>
+        </div>
       </header>
 
       <section className="flex flex-col gap-3">

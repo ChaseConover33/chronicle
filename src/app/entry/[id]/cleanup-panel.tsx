@@ -15,6 +15,7 @@ import {
   estimatedCostPerEntry,
   formatCost,
   getModel,
+  type ProviderId,
 } from "@/lib/models";
 import {
   generateCleanupAction,
@@ -28,9 +29,16 @@ type Props = {
   entryId: string;
   domains: Domain[];
   autoStart: boolean;
+  availableProviders: ProviderId[];
 };
 
-export function CleanupPanel({ entryId, domains, autoStart }: Props) {
+export function CleanupPanel({
+  entryId,
+  domains,
+  autoStart,
+  availableProviders,
+}: Props) {
+  const availableSet = new Set(availableProviders);
   const router = useRouter();
   const [preview, setPreview] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
@@ -87,7 +95,14 @@ export function CleanupPanel({ entryId, domains, autoStart }: Props) {
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    const initial = stored && getModel(stored) ? stored : DEFAULT_MODEL_ID;
+    const storedEntry = stored ? getModel(stored) : undefined;
+    const storedAvailable =
+      storedEntry &&
+      (storedEntry.provider === "ollama" ||
+        availableSet.has(storedEntry.provider));
+    const fallback =
+      MODELS.find((m) => availableSet.has(m.provider))?.id ?? DEFAULT_MODEL_ID;
+    const initial = storedAvailable ? stored! : fallback;
     setModelId(initial);
     if (autoStart && !startedRef.current) {
       startedRef.current = true;
@@ -128,6 +143,11 @@ export function CleanupPanel({ entryId, domains, autoStart }: Props) {
     });
   };
 
+  const currentEntry = getModel(modelId);
+  const showOllamaCurrent =
+    currentEntry?.provider === "ollama" &&
+    !MODELS.some((m) => m.id === modelId);
+
   const modelSelect = (
     <div className="flex items-center gap-2">
       <label
@@ -143,12 +163,21 @@ export function CleanupPanel({ entryId, domains, autoStart }: Props) {
         disabled={pending}
         className="h-8 rounded-md border border-input bg-transparent px-2 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
       >
-        {MODELS.map((m) => (
-          <option key={m.id} value={m.id}>
-            {PROVIDERS[m.provider].label} · {m.label} —{" "}
-            {formatCost(estimatedCostPerEntry(m))}
+        {MODELS.map((m) => {
+          const enabled = availableSet.has(m.provider);
+          return (
+            <option key={m.id} value={m.id} disabled={!enabled}>
+              {PROVIDERS[m.provider].label} · {m.label} —{" "}
+              {formatCost(estimatedCostPerEntry(m))}
+              {!enabled ? " (key not set)" : ""}
+            </option>
+          );
+        })}
+        {showOllamaCurrent && currentEntry && (
+          <option value={modelId}>
+            Ollama (local) · {currentEntry.label} — free
           </option>
-        ))}
+        )}
       </select>
       <Link
         href="/settings"
