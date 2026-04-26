@@ -82,4 +82,58 @@ describe("buildLensReflectionPrompt", () => {
     });
     assert.match(prompt, /beginning with "## Faith \(Christian\)"/);
   });
+
+  it("renders an empty-prior fallback when no prior reflections", () => {
+    const prompt = buildLensReflectionPrompt({
+      entry: SAMPLE_ENTRY,
+      lens: FAITH_LENS,
+      priorReflections: [],
+    });
+    assert.match(prompt, /no prior reflections through this lens/);
+  });
+
+  it("renders prior reflections in chronological order with dates", () => {
+    const prompt = buildLensReflectionPrompt({
+      entry: SAMPLE_ENTRY,
+      lens: FAITH_LENS,
+      priorReflections: [
+        {
+          entryDate: "2026-04-19",
+          createdAt: "2026-04-19 21:00:00",
+          reflection: "## Faith\n\nLater reflection.",
+        },
+        {
+          entryDate: "2026-04-13",
+          createdAt: "2026-04-13 21:00:00",
+          reflection: "## Faith\n\nEarlier reflection.",
+        },
+      ],
+    });
+    // Earlier should appear before later in the rendered block.
+    const earlierIdx = prompt.indexOf("Earlier reflection");
+    const laterIdx = prompt.indexOf("Later reflection");
+    assert.ok(earlierIdx > -1 && laterIdx > -1);
+    assert.ok(earlierIdx < laterIdx, "prior reflections must be chronological");
+    assert.match(prompt, /entry_date="2026-04-13"/);
+    assert.match(prompt, /entry_date="2026-04-19"/);
+  });
+});
+
+describe("buildLensReflectionSystemPrompt — temporal continuity", () => {
+  it("instructs the model to notice continuity and contrast across priors", () => {
+    const prompt = buildLensReflectionSystemPrompt({
+      id: "x",
+      name: "X",
+      systemPrompt: "p",
+      analysisQuestions: [],
+      summaryFocus: [],
+      isBuiltin: false,
+      active: true,
+      sortOrder: 0,
+    });
+    assert.match(prompt, /continuity/i);
+    assert.match(prompt, /contrast/i);
+    assert.match(prompt, /grounded/i);
+    assert.match(prompt, /Do NOT invent/);
+  });
 });

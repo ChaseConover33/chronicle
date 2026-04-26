@@ -103,4 +103,29 @@ describe("buildSummaryPrompt", () => {
     assert.match(monthly, /\bmonth\b/);
     assert.doesNotMatch(monthly, /\bweek\b/);
   });
+
+  it("renders a no-prior fallback when no prior summary supplied", () => {
+    const prompt = buildSummaryPrompt({
+      period: "weekly",
+      range: { from: "2026-04-20", to: "2026-04-26" },
+      sources: [SOURCE_A],
+      lenses: [],
+    });
+    assert.match(prompt, /no prior week summary/);
+  });
+
+  it("includes the prior summary block with date when supplied", () => {
+    const prompt = buildSummaryPrompt({
+      period: "weekly",
+      range: { from: "2026-04-20", to: "2026-04-26" },
+      sources: [SOURCE_A],
+      lenses: [],
+      priorSummary: {
+        date: "2026-04-19",
+        formattedContent: "## Last Week\n\nBudget tension first appeared.",
+      },
+    });
+    assert.match(prompt, /<prior_summary period="weekly" date="2026-04-19">/);
+    assert.match(prompt, /Budget tension first appeared\./);
+  });
 });

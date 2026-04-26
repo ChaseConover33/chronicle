@@ -22,6 +22,11 @@ export type SummarySource = {
   content: string;
 };
 
+export type PriorSummary = {
+  date: string;
+  formattedContent: string;
+};
+
 export const SUMMARY_SYSTEM_PROMPT = `You are synthesizing a journal summary that the writer will reread to see patterns, growth, and themes that aren't visible from inside a single entry.
 
 Your output is markdown with these sections, in order:
@@ -37,17 +42,24 @@ Constraints:
 - Distinguish "things that happened" (factual synthesis) from "patterns I notice" (interpretive reflection). The writer should be able to tell which is which.
 - Reference specific source entries when claiming a pattern. Don't generalize without evidence.
 - If the period has very little content, say so. Don't pad.
-- Headings use Title Case.`;
+- Headings use Title Case.
+
+If a prior summary of the same period type is provided (e.g. last week's weekly summary when generating this week's), use it ONLY in the Patterns Noticed section to call out:
+- Continuation: "you continued to wrestle with X" — when a theme from the prior period is still present.
+- Shift: "this is the first week you didn't mention Y" — when a recurring theme has gone quiet.
+- Cycle: "the budget tension surfaces again, third week running" — when something keeps returning.
+Reference the prior summary by its date when calling out a thread. Do NOT regurgitate the prior summary's content. If no prior summary is provided, skip cross-period observations entirely.`;
 
 export type BuildPromptInput = {
   period: SummaryPeriod;
   range: Range;
   sources: SummarySource[];
   lenses: Lens[];
+  priorSummary?: PriorSummary;
 };
 
 export function buildSummaryPrompt(input: BuildPromptInput): string {
-  const { period, range, sources, lenses } = input;
+  const { period, range, sources, lenses, priorSummary } = input;
   const periodLabel = PERIOD_LABEL[period];
   const lensesBlock =
     lenses.length === 0
@@ -66,11 +78,17 @@ export function buildSummaryPrompt(input: BuildPromptInput): string {
     )
     .join("\n\n");
 
+  const priorBlock = priorSummary
+    ? `<prior_summary period="${period}" date="${priorSummary.date}">\n${priorSummary.formattedContent.trim()}\n</prior_summary>`
+    : `<prior_summary>\n(no prior ${periodLabel} summary — this is the first one, skip cross-period observations)\n</prior_summary>`;
+
   return `Synthesize a ${periodLabel} summary covering ${range.from} through ${range.to}.
 
 <active_lenses>
 ${lensesBlock}
 </active_lenses>
+
+${priorBlock}
 
 <source_entries>
 ${sourcesBlock}

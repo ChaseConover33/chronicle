@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { and, asc, eq, gte, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lt, lte } from "drizzle-orm";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { db } from "@/db";
@@ -12,6 +12,7 @@ import {
   CHILD_TYPE,
   SUMMARY_SYSTEM_PROMPT,
   buildSummaryPrompt,
+  type PriorSummary,
   type SummaryPeriod,
   type SummarySource,
 } from "./summarize-prompt";
@@ -57,6 +58,24 @@ export function fetchActiveLenses(): Lens[] {
   return db.select().from(lenses).where(eq(lenses.active, true)).all();
 }
 
+export function fetchPriorSummary(
+  period: SummaryPeriod,
+  beforeDate: string,
+): PriorSummary | undefined {
+  const row = db
+    .select({
+      date: entries.date,
+      formattedContent: entries.formattedContent,
+    })
+    .from(entries)
+    .where(and(eq(entries.type, period), lt(entries.date, beforeDate)))
+    .orderBy(desc(entries.date), desc(entries.createdAt))
+    .limit(1)
+    .get();
+  if (!row || !row.formattedContent) return undefined;
+  return { date: row.date, formattedContent: row.formattedContent };
+}
+
 export type GenerateSummaryInput = {
   period: SummaryPeriod;
   range: Range;
@@ -79,11 +98,13 @@ export async function generateSummary(
     );
   }
   const activeLenses = fetchActiveLenses();
+  const priorSummary = fetchPriorSummary(input.period, input.range.from);
   const prompt = buildSummaryPrompt({
     period: input.period,
     range: input.range,
     sources,
     lenses: activeLenses,
+    priorSummary,
   });
   const { object } = await generateObject({
     model: getLanguageModel(input.modelId ?? DEFAULT_MODEL_ID),
