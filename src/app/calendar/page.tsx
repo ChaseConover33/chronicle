@@ -4,6 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { db } from "@/db";
 import { entries } from "@/db/schema";
 import { CalendarGrid } from "./calendar-grid";
+import { SummarizeButton } from "./summarize-button";
 
 export default async function CalendarPage() {
   const rows = await db
@@ -52,6 +53,12 @@ export default async function CalendarPage() {
             Search
           </Link>
           <Link
+            href="/lenses"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Lenses
+          </Link>
+          <Link
             href="/settings"
             className="text-sm text-muted-foreground hover:text-foreground"
           >
@@ -75,6 +82,16 @@ export default async function CalendarPage() {
         <CalendarGrid days={days} />
         <div className="text-sm text-muted-foreground">
           {rows.length} {rows.length === 1 ? "entry" : "entries"} total
+        </div>
+        <div className="mt-4 flex flex-col items-center gap-2 border-t pt-6 w-full max-w-sm">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Generate a summary
+          </p>
+          <SummarizeButton />
+          <p className="text-center text-xs text-muted-foreground">
+            Weekly reads daily entries; monthly reads weekly summaries; yearly
+            reads monthly summaries.
+          </p>
         </div>
       </div>
     </div>
