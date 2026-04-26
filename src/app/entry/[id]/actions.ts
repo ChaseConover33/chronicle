@@ -2,6 +2,7 @@
 
 import { asc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { domains, entries, entryDomains } from "@/db/schema";
 import { cleanupBraindump, refineCleanup } from "@/lib/cleanup";
@@ -111,4 +112,13 @@ export async function saveCleanupAction(
   revalidatePath("/");
   revalidatePath("/calendar");
   return { ok: true };
+}
+
+export async function deleteEntryAction(formData: FormData) {
+  const entryId = String(formData.get("entryId") ?? "");
+  if (!entryId) return;
+  db.delete(entries).where(eq(entries.id, entryId)).run();
+  revalidatePath("/");
+  revalidatePath("/calendar");
+  redirect("/");
 }

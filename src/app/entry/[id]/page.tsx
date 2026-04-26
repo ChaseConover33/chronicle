@@ -16,7 +16,13 @@ import {
   checkApiProviderAvailability,
   type ProviderId,
 } from "@/lib/models";
+import {
+  formatEntryTitle,
+  formatGeneratedDate,
+  isSummaryType,
+} from "@/lib/entry-title";
 import { CleanupPanel } from "./cleanup-panel";
+import { DeleteEntryButton } from "./delete-entry-button";
 import { EntryArticle } from "./entry-article";
 import { LensReflections } from "./lens-reflections";
 import { RelatedEntries } from "./related-entries";
@@ -126,11 +132,23 @@ export default async function EntryPage({
       </div>
 
       <header className="mb-8 flex flex-col gap-2">
-        <div className="text-sm text-muted-foreground capitalize">
-          {entry.type} · {entry.status}
-          {entry.publishedAt ? ` · published ${entry.publishedAt.slice(0, 10)}` : ""}
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-sm text-muted-foreground capitalize">
+            {entry.type} · {entry.status}
+            {entry.publishedAt
+              ? ` · published ${entry.publishedAt.slice(0, 10)}`
+              : ""}
+          </div>
+          <DeleteEntryButton entryId={entry.id} />
         </div>
-        <h1 className="text-3xl font-semibold tracking-tight">{entry.date}</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          {formatEntryTitle(entry)}
+        </h1>
+        {isSummaryType(entry.type) && (
+          <p className="text-sm text-muted-foreground">
+            Generated {formatGeneratedDate(entry.createdAt)}
+          </p>
+        )}
       </header>
 
       {showCleanupPanel && (
