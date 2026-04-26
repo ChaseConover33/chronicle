@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { entries } from "@/db/schema";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { listActiveGoalsNeedingReflection } from "@/lib/goal-evaluation";
 
 export default async function Home() {
   const recent = await db
@@ -15,6 +16,7 @@ export default async function Home() {
 
   const todayIso = new Date().toISOString().slice(0, 10);
   const wroteToday = recent.some((e) => e.date === todayIso && e.type === "daily");
+  const goalsNeedingReflection = listActiveGoalsNeedingReflection();
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-10 px-6 py-16">
@@ -69,6 +71,56 @@ export default async function Home() {
           </Link>
         </div>
       </section>
+
+      {goalsNeedingReflection.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-lg font-medium">Goals worth a reflection</h2>
+          <p className="text-sm text-muted-foreground">
+            These goals are at risk or off track. Click one to write a quick
+            reflection on why — your response gets tagged to the goal.
+          </p>
+          <div className="flex flex-col gap-2">
+            {goalsNeedingReflection.map(({ goal, latest }) => (
+              <Card
+                key={goal.id}
+                className={
+                  latest.trajectory === "off_track"
+                    ? "border-rose-300/60 bg-rose-50/50 dark:bg-rose-950/20"
+                    : "border-amber-300/60 bg-amber-50/50 dark:bg-amber-950/20"
+                }
+              >
+                <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{goal.title}</span>
+                      <span
+                        className={
+                          latest.trajectory === "off_track"
+                            ? "rounded-full bg-rose-200 px-2 py-0.5 text-[10px] uppercase tracking-wide text-rose-900 dark:bg-rose-900/40 dark:text-rose-200"
+                            : "rounded-full bg-amber-200 px-2 py-0.5 text-[10px] uppercase tracking-wide text-amber-900 dark:bg-amber-900/40 dark:text-amber-200"
+                        }
+                      >
+                        {latest.trajectory === "off_track"
+                          ? "Off track"
+                          : "At risk"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {latest.assessment}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/write?goal=${goal.id}`}
+                    className={buttonVariants({ variant: "outline", size: "sm" })}
+                  >
+                    Reflect on why
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-medium">Recent entries</h2>

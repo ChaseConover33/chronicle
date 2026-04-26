@@ -1,15 +1,17 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { and, asc, desc, eq, gte, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { db } from "@/db";
 import {
   domains,
   entries,
+  entryGoals,
   goalProgress,
   goals,
   lenses,
+  type Entry,
   type Goal,
   type GoalProgress,
 } from "@/db/schema";
@@ -213,4 +215,51 @@ export async function evaluateAllActiveGoals(input: {
     }
   }
   return results;
+}
+
+export function getLatestProgress(goalId: string): GoalProgress | undefined {
+  return db
+    .select()
+    .from(goalProgress)
+    .where(eq(goalProgress.goalId, goalId))
+    .orderBy(desc(goalProgress.createdAt))
+    .limit(1)
+    .get();
+}
+
+export type GoalNeedingReflection = {
+  goal: Goal;
+  latest: GoalProgress;
+};
+
+export function listActiveGoalsNeedingReflection(): GoalNeedingReflection[] {
+  const active = listActiveGoals();
+  const out: GoalNeedingReflection[] = [];
+  for (const goal of active) {
+    const latest = getLatestProgress(goal.id);
+    if (latest && (latest.trajectory === "at_risk" || latest.trajectory === "off_track")) {
+      out.push({ goal, latest });
+    }
+  }
+  return out;
+}
+
+export function tagEntryToGoal(entryId: string, goalId: string): void {
+  db.insert(entryGoals).values({ entryId, goalId }).run();
+}
+
+export function listEntriesForGoal(goalId: string): Entry[] {
+  const ids = db
+    .select({ entryId: entryGoals.entryId })
+    .from(entryGoals)
+    .where(eq(entryGoals.goalId, goalId))
+    .all()
+    .map((r) => r.entryId);
+  if (ids.length === 0) return [];
+  return db
+    .select()
+    .from(entries)
+    .where(inArray(entries.id, ids))
+    .orderBy(desc(entries.date))
+    .all();
 }

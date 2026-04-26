@@ -180,6 +180,19 @@ export const goals = sqliteTable("goals", {
     .default(sql`(datetime('now'))`),
 });
 
+export const entryGoals = sqliteTable(
+  "entry_goals",
+  {
+    entryId: text("entry_id")
+      .notNull()
+      .references(() => entries.id, { onDelete: "cascade" }),
+    goalId: text("goal_id")
+      .notNull()
+      .references(() => goals.id, { onDelete: "cascade" }),
+  },
+  (t) => [index("idx_entry_goals_pk").on(t.entryId, t.goalId)],
+);
+
 export const goalProgress = sqliteTable("goal_progress", {
   id: text("id").primaryKey(),
   goalId: text("goal_id")

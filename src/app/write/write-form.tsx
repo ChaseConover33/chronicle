@@ -7,11 +7,13 @@ import { saveDraftEntry } from "./actions";
 
 type Props = {
   initialDate: string;
+  goalId?: string;
 };
 
-export function WriteForm({ initialDate }: Props) {
+export function WriteForm({ initialDate, goalId }: Props) {
   return (
     <form action={saveDraftEntry} className="flex flex-col gap-6">
+      {goalId && <input type="hidden" name="goalId" value={goalId} />}
       <div className="flex flex-col gap-2 sm:max-w-xs">
         <Label htmlFor="date">Date</Label>
         <input

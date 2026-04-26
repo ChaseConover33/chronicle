@@ -6,7 +6,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { db } from "@/db";
 import { domains, lenses } from "@/db/schema";
 import { formatGeneratedDate } from "@/lib/entry-title";
-import { getGoal, listGoalProgress } from "@/lib/goal-evaluation";
+import {
+  getGoal,
+  listEntriesForGoal,
+  listGoalProgress,
+} from "@/lib/goal-evaluation";
 import { GoalEvaluateButton } from "./evaluate-button";
 import { GoalStatusForm } from "./status-form";
 
@@ -43,6 +47,7 @@ export default async function GoalDetailPage({
   if (!goal) notFound();
 
   const progress = listGoalProgress(id);
+  const taggedEntries = listEntriesForGoal(id);
   const domain = goal.domainId
     ? db.select().from(domains).where(eq(domains.id, goal.domainId)).get()
     : undefined;
@@ -95,6 +100,35 @@ export default async function GoalDetailPage({
           slippage.
         </p>
         <GoalEvaluateButton goalId={goal.id} />
+      </section>
+
+      <section className="mb-10 flex flex-col gap-3">
+        <h2 className="text-sm uppercase tracking-wide text-muted-foreground">
+          Tagged entries ({taggedEntries.length})
+        </h2>
+        {taggedEntries.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No entries tagged to this goal yet. Reflections you write from the
+            home page&rsquo;s prompt land here.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {taggedEntries.map((e) => (
+              <Link key={e.id} href={`/entry/${e.id}`} className="block">
+                <Card className="transition-colors hover:bg-accent/50">
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div>
+                      <div className="font-medium">{e.date}</div>
+                      <div className="text-xs text-muted-foreground capitalize">
+                        {e.type} · {e.status}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="flex flex-col gap-3">
