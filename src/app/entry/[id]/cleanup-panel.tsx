@@ -41,6 +41,7 @@ export function CleanupPanel({
   const availableSet = new Set(availableProviders);
   const router = useRouter();
   const [preview, setPreview] = useState<string | null>(null);
+  const [summary, setSummary] = useState<string>("");
   const [editing, setEditing] = useState(false);
   const [redoNote, setRedoNote] = useState("");
   const [selectedDomains, setSelectedDomains] = useState<Set<string>>(
@@ -59,6 +60,7 @@ export function CleanupPanel({
       const result = await generateCleanupAction(entryId, useModel);
       if (result.ok) {
         setPreview(result.formattedContent);
+        setSummary(result.summary);
         setSelectedDomains(new Set(result.suggestedDomainIds));
         setRedoNote("");
       } else {
@@ -85,6 +87,7 @@ export function CleanupPanel({
       );
       if (result.ok) {
         setPreview(result.formattedContent);
+        setSummary(result.summary);
         setSelectedDomains(new Set(result.suggestedDomainIds));
         setRedoNote("");
       } else {
@@ -132,6 +135,7 @@ export function CleanupPanel({
       const result = await saveCleanupAction(
         entryId,
         preview,
+        summary,
         Array.from(selectedDomains),
       );
       if (result.ok) {
@@ -200,6 +204,7 @@ export function CleanupPanel({
               variant="outline"
               onClick={() => {
                 setPreview(null);
+                setSummary("");
                 setEditing(false);
                 setSelectedDomains(new Set());
                 setError(null);
@@ -247,6 +252,26 @@ export function CleanupPanel({
             </CardContent>
           </Card>
         )}
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="card-summary"
+            className="text-xs uppercase tracking-wide text-muted-foreground"
+          >
+            Card summary
+          </label>
+          <Textarea
+            id="card-summary"
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            disabled={pending}
+            rows={3}
+            className="resize-y text-sm"
+          />
+          <p className="text-xs text-muted-foreground">
+            2-3 sentences shown on entry-list cards. Edit if it&rsquo;s missing
+            something the entry actually covers.
+          </p>
+        </div>
         <div className="flex flex-col gap-2">
           <div className="text-xs uppercase tracking-wide text-muted-foreground">
             Domains {selectedDomains.size > 0 && `(${selectedDomains.size})`}

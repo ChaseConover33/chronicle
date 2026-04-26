@@ -5,7 +5,8 @@ import ReactMarkdown from "react-markdown";
 import { Card, CardContent } from "@/components/ui/card";
 import { db } from "@/db";
 import { domains, lenses } from "@/db/schema";
-import { entryHeadline, formatGeneratedDate } from "@/lib/entry-title";
+import { EntryCard } from "@/components/entry-card";
+import { formatGeneratedDate } from "@/lib/entry-title";
 import {
   getGoal,
   listEntriesForGoal,
@@ -125,30 +126,9 @@ export default async function GoalDetailPage({
           </p>
         ) : (
           <div className="flex flex-col gap-2">
-            {taggedEntries.map((e) => {
-              const headline = entryHeadline(e);
-              return (
-                <Link key={e.id} href={`/entry/${e.id}`} className="block">
-                  <Card className="transition-colors hover:bg-accent/50">
-                    <CardContent className="flex flex-col gap-1 p-4">
-                      <div className="flex items-baseline justify-between gap-3">
-                        <div className="font-medium">
-                          {headline || e.date}
-                        </div>
-                        {!e.formattedContent && (
-                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
-                            Draft
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {e.date} · <span className="capitalize">{e.type.replace(/_/g, " ")}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              );
-            })}
+            {taggedEntries.map((e) => (
+              <EntryCard key={e.id} entry={e} />
+            ))}
           </div>
         )}
       </section>

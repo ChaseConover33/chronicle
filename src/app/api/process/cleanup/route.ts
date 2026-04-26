@@ -45,6 +45,7 @@ export async function POST(request: Request) {
     const result = await cleanupBraindump(rawText, availableDomains, modelId);
     return NextResponse.json({
       formatted_content: result.formattedContent,
+      summary: result.summary,
       suggested_domain_ids: result.suggestedDomainIds,
     });
   } catch (err) {

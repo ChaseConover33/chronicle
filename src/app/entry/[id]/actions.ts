@@ -11,6 +11,7 @@ export type CleanupActionResult =
   | {
       ok: true;
       formattedContent: string;
+      summary: string;
       suggestedDomainIds: string[];
     }
   | { ok: false; error: string };
@@ -38,6 +39,7 @@ export async function generateCleanupAction(
     return {
       ok: true,
       formattedContent: result.formattedContent,
+      summary: result.summary,
       suggestedDomainIds: result.suggestedDomainIds,
     };
   } catch (err) {
@@ -77,6 +79,7 @@ export async function refineCleanupAction(
     return {
       ok: true,
       formattedContent: result.formattedContent,
+      summary: result.summary,
       suggestedDomainIds: result.suggestedDomainIds,
     };
   } catch (err) {
@@ -88,6 +91,7 @@ export async function refineCleanupAction(
 export async function saveCleanupAction(
   entryId: string,
   formattedContent: string,
+  summary: string,
   selectedDomainIds: string[],
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const entry = db.select().from(entries).where(eq(entries.id, entryId)).get();
@@ -97,6 +101,7 @@ export async function saveCleanupAction(
     tx.update(entries)
       .set({
         formattedContent,
+        summary: summary.trim() || null,
         updatedAt: new Date().toISOString().replace("T", " ").slice(0, 19),
       })
       .where(eq(entries.id, entryId))

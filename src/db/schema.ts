@@ -23,6 +23,7 @@ export const entries = sqliteTable(
     template: text("template"),
     rawText: text("raw_text"),
     formattedContent: text("formatted_content"),
+    summary: text("summary"),
     createdAt: text("created_at")
       .notNull()
       .default(sql`(datetime('now'))`),

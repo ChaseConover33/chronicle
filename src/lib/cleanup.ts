@@ -11,6 +11,7 @@ export type AvailableDomain = {
 
 export type BraindumpResult = {
   formattedContent: string;
+  summary: string;
   suggestedDomainIds: string[];
 };
 
@@ -63,7 +64,22 @@ Examples of good inference:
 Pick multiple domains when the entry genuinely spans them. Do not stretch — only include a domain if its presence in the entry is clear. If nothing fits, return an empty array.
 
 Return domain IDs (not names) in suggested_domain_ids.
-</domain_categorization>`;
+</domain_categorization>
+
+<summary>
+You also produce a 2-3 sentence card summary that captures what the entry is actually about, for display on entry-list cards. The summary is the writer's later self getting a glance-able sense of "what was this day about" without re-reading the whole entry.
+
+Rules:
+- 2-3 sentences. Never one. Never four.
+- Third-person, past tense, neutral observer voice ("Reflected on the disconnect between…", "Worked through frustration with…", "Played poker with friends and noticed…"). NOT first-person, NOT second-person, NOT a quote.
+- Cover the BREADTH of the entry, not just the first topic. If the entry covers running, work, and a disagreement with someone, the summary should touch all three.
+- Lead with what the writer was doing or wrestling with, not their conclusion.
+- Use specific nouns from the entry (people's names, project names, places) where they ground the summary. Don't strip detail to make it generic.
+- Don't moralize ("important reflection on…"), don't editorialize ("a thoughtful look at…"), don't praise ("a great day where…").
+- Don't include sentences like "the entry discusses" or "the writer talks about" — just describe the content directly.
+
+Return the summary in the "summary" field.
+</summary>`;
 
 const REFINE_PROMPT = `You are refining a journal entry that you previously cleaned up. The writer is giving you feedback to adjust the previous output.
 
@@ -77,13 +93,19 @@ Your job:
 - Keep everything they did NOT ask to change exactly as it was in the previous version. This includes manual edits the writer made before clicking redo.
 - All the same voice-preservation and forbidden-changes rules from the original cleanup still apply (lowercase proper nouns the writer used, stylistic shorthand, missing apostrophes, comma splices, second-person self-address, no added content, no softening, no expanding abbreviations).
 - ALWAYS keep at least one ## header. Every refined entry must start with a ## heading. If the writer asks for additional headings, add them; if they ask to remove headings, still keep one descriptive heading at the top. HEADINGS MUST USE TITLE CASE — capitalize the first letter of every significant word ("## The Game Of Work"). Headings are the one place where capitalization overrides the writer's lowercase style.
-- Re-infer suggested_domain_ids based on the resulting content (the writer may have asked for changes that shift what the entry is "about").`;
+- Re-infer suggested_domain_ids based on the resulting content (the writer may have asked for changes that shift what the entry is "about").
+- Re-emit the "summary" field (2-3 sentences, third-person past tense, neutral observer voice, covering the breadth of the refined entry — same rules as the original cleanup).`;
 
 const RESULT_SCHEMA = z.object({
   formatted_content: z
     .string()
     .describe(
       "The entry organized as readable markdown. ALWAYS includes at least one ## heading. Multi-topic entries get a ## heading per topic; single-topic entries get one ## heading at the top. Preserve the writer's voice exactly.",
+    ),
+  summary: z
+    .string()
+    .describe(
+      "A 2-3 sentence card summary of the entry, in third-person past tense, neutral observer voice. Covers the breadth of the entry, not just the first topic. Used on entry-list cards.",
     ),
   suggested_domain_ids: z
     .array(z.string())
@@ -110,7 +132,7 @@ export async function cleanupBraindump(
   modelId: string = DEFAULT_MODEL_ID,
 ): Promise<BraindumpResult> {
   if (rawText.trim().length === 0) {
-    return { formattedContent: "", suggestedDomainIds: [] };
+    return { formattedContent: "", summary: "", suggestedDomainIds: [] };
   }
 
   const { object } = await generateObject({
@@ -129,11 +151,46 @@ ${rawText.trim()}
 
   return {
     formattedContent: object.formatted_content.trim(),
+    summary: object.summary.trim(),
     suggestedDomainIds: filterValidDomains(
       object.suggested_domain_ids,
       availableDomains,
     ),
   };
+}
+
+const SUMMARY_ONLY_SYSTEM = `You produce a 2-3 sentence card summary of an existing journal entry, for display on entry-list cards.
+
+Rules:
+- 2-3 sentences. Never one. Never four.
+- Third-person, past tense, neutral observer voice ("Reflected on the disconnect between…", "Worked through frustration with…", "Played poker with friends and noticed…"). NOT first-person, NOT second-person, NOT a quote.
+- Cover the BREADTH of the entry, not just the first section. If the entry covers running, work, and a disagreement, the summary should touch all three.
+- Lead with what the writer was doing or wrestling with, not their conclusion.
+- Use specific nouns from the entry (people's names, project names, places) where they ground the summary.
+- Don't moralize, don't editorialize, don't praise, don't include "the entry discusses" framing — just describe the content directly.`;
+
+const SUMMARY_ONLY_SCHEMA = z.object({
+  summary: z.string().describe("2-3 sentence card summary in third-person past tense."),
+});
+
+export async function summarizeFormatted(
+  formattedContent: string,
+  rawText: string,
+  modelId: string = DEFAULT_MODEL_ID,
+): Promise<string> {
+  if (formattedContent.trim().length === 0 && rawText.trim().length === 0) {
+    return "";
+  }
+  const { object } = await generateObject({
+    model: getLanguageModel(modelId),
+    schema: SUMMARY_ONLY_SCHEMA,
+    system: SUMMARY_ONLY_SYSTEM,
+    prompt: `<formatted_entry>
+${formattedContent.trim() || rawText.trim()}
+</formatted_entry>`,
+    maxOutputTokens: 400,
+  });
+  return object.summary.trim();
 }
 
 export async function refineCleanup(
@@ -172,6 +229,7 @@ ${noteBlock}`,
 
   return {
     formattedContent: object.formatted_content.trim(),
+    summary: object.summary.trim(),
     suggestedDomainIds: filterValidDomains(
       object.suggested_domain_ids,
       availableDomains,

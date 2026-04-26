@@ -62,11 +62,11 @@ export default async function DayPage({
       ) : (
         <div className="flex flex-col gap-3">
           {rows.map((e) => {
-            const headline = entryHeadline(e, 200);
+            const body = e.summary?.trim() || entryHeadline(e, 220) || "(empty)";
             return (
               <Link key={e.id} href={`/entry/${e.id}`} className="block">
                 <Card className="transition-colors hover:bg-accent/50">
-                  <CardContent className="flex flex-col gap-1 p-4">
+                  <CardContent className="flex flex-col gap-1.5 p-4">
                     <div className="flex items-baseline justify-between gap-3">
                       <div className="text-xs uppercase tracking-wide text-muted-foreground">
                         {e.type.replace(/_/g, " ")} · {e.status}
@@ -82,7 +82,7 @@ export default async function DayPage({
                         </div>
                       </div>
                     </div>
-                    <div className="text-sm">{headline || "(empty)"}</div>
+                    <p className="text-sm leading-6">{body}</p>
                   </CardContent>
                 </Card>
               </Link>

@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { entries } from "@/db/schema";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { entryHeadline, formatEntryTitle } from "@/lib/entry-title";
+import { EntryCard } from "@/components/entry-card";
 import {
   listActiveGoalsNeedingReflection,
   listOnTrackActiveGoals,
@@ -174,30 +174,9 @@ export default async function Home() {
           </p>
         ) : (
           <div className="flex flex-col gap-2">
-            {recent.map((e) => {
-              const headline = entryHeadline(e);
-              return (
-                <Link key={e.id} href={`/entry/${e.id}`} className="block">
-                  <Card className="transition-colors hover:bg-accent/50">
-                    <CardContent className="flex flex-col gap-1 p-4">
-                      <div className="flex items-baseline justify-between gap-3">
-                        <div className="font-medium">
-                          {headline || formatEntryTitle(e)}
-                        </div>
-                        {!e.formattedContent && (
-                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
-                            Draft
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {e.date} · <span className="capitalize">{e.type.replace(/_/g, " ")}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              );
-            })}
+            {recent.map((e) => (
+              <EntryCard key={e.id} entry={e} />
+            ))}
           </div>
         )}
       </section>
