@@ -3,7 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { db } from "@/db";
-import { domains, entries, entryDomains, tags } from "@/db/schema";
+import {
+  domains,
+  entries,
+  entryDomains,
+  lensReflections,
+  lenses,
+  tags,
+} from "@/db/schema";
 import {
   PROVIDERS,
   checkApiProviderAvailability,
@@ -11,6 +18,7 @@ import {
 } from "@/lib/models";
 import { CleanupPanel } from "./cleanup-panel";
 import { EntryArticle } from "./entry-article";
+import { LensReflections } from "./lens-reflections";
 import { RelatedEntries } from "./related-entries";
 
 export default async function EntryPage({
@@ -63,6 +71,23 @@ export default async function EntryPage({
     (id) => checkApiProviderAvailability(id).available,
   );
 
+  const activeLenses = db
+    .select({ id: lenses.id, name: lenses.name })
+    .from(lenses)
+    .where(eq(lenses.active, true))
+    .orderBy(asc(lenses.sortOrder))
+    .all();
+  const existingReflections = db
+    .select({
+      id: lensReflections.id,
+      lensId: lensReflections.lensId,
+      reflection: lensReflections.reflection,
+      createdAt: lensReflections.createdAt,
+    })
+    .from(lensReflections)
+    .where(eq(lensReflections.entryId, id))
+    .all();
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
       <div className="mb-8 flex items-center justify-between gap-3">
@@ -78,6 +103,12 @@ export default async function EntryPage({
             className="text-sm text-muted-foreground hover:text-foreground"
           >
             Search
+          </Link>
+          <Link
+            href="/lenses"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Lenses
           </Link>
           <Link
             href="/settings"
@@ -118,6 +149,14 @@ export default async function EntryPage({
 
       {entry.formattedContent && entryDomainList.length > 0 && (
         <RelatedEntries entryId={entry.id} />
+      )}
+
+      {entry.formattedContent && (
+        <LensReflections
+          entryId={entry.id}
+          activeLenses={activeLenses}
+          existing={existingReflections}
+        />
       )}
 
       {(entryDomainList.length > 0 || entryTags.length > 0) && (

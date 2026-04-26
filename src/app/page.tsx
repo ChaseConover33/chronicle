@@ -33,6 +33,12 @@ export default async function Home() {
             Search
           </Link>
           <Link
+            href="/lenses"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Lenses
+          </Link>
+          <Link
             href="/settings"
             className="text-sm text-muted-foreground hover:text-foreground"
           >
