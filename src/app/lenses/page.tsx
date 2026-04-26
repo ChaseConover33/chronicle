@@ -47,7 +47,12 @@ export default async function LensesPage() {
               <div className="flex items-baseline justify-between gap-3">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
-                    <div className="font-medium">{lens.name}</div>
+                    <Link
+                      href={`/lenses/${lens.id}`}
+                      className="font-medium hover:underline underline-offset-4"
+                    >
+                      {lens.name}
+                    </Link>
                     {lens.active && (
                       <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-primary">
                         Active

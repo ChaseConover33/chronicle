@@ -8,6 +8,13 @@
       "when": 1776999034156,
       "tag": "0000_overrated_norrin_radd",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1777060000000,
+      "tag": "0001_lens_period_reflections",
+      "breakpoints": true
     }
   ]
 }

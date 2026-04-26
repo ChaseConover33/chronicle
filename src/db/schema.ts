@@ -141,6 +141,28 @@ export const lensReflections = sqliteTable(
   ],
 );
 
+export const lensPeriodReflections = sqliteTable(
+  "lens_period_reflections",
+  {
+    id: text("id").primaryKey(),
+    lensId: text("lens_id")
+      .notNull()
+      .references(() => lenses.id, { onDelete: "cascade" }),
+    period: text("period", { enum: ["weekly", "monthly", "yearly"] }).notNull(),
+    rangeFrom: text("range_from").notNull(),
+    rangeTo: text("range_to").notNull(),
+    reflection: text("reflection").notNull(),
+    modelId: text("model_id"),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (t) => [
+    index("idx_lens_period_lens").on(t.lensId),
+    index("idx_lens_period_range").on(t.lensId, t.rangeFrom, t.rangeTo),
+  ],
+);
+
 export const goals = sqliteTable("goals", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),

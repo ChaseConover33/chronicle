@@ -25,7 +25,7 @@ function monthName(date: Ymd): string {
   return MONTH_NAMES[parts(date).m - 1];
 }
 
-function formatRange(from: Ymd, to: Ymd): string {
+export function formatDateRange(from: Ymd, to: Ymd): string {
   const a = parts(from);
   const b = parts(to);
   if (a.y === b.y && a.m === b.m) {
@@ -37,13 +37,28 @@ function formatRange(from: Ymd, to: Ymd): string {
   return `${monthName(from)} ${a.d}, ${a.y} – ${monthName(to)} ${b.d}, ${b.y}`;
 }
 
+export function formatPeriodTitle(
+  period: "weekly" | "monthly" | "yearly",
+  rangeFrom: Ymd,
+  rangeTo: Ymd,
+): string {
+  switch (period) {
+    case "weekly":
+      return `Week of ${formatDateRange(rangeFrom, rangeTo)}`;
+    case "monthly":
+      return `${monthName(rangeFrom)} ${parts(rangeFrom).y}`;
+    case "yearly":
+      return `${parts(rangeFrom).y}`;
+  }
+}
+
 export function formatEntryTitle(
   entry: Pick<Entry, "type" | "date">,
 ): string {
   switch (entry.type) {
     case "weekly": {
       const r = weekRange(entry.date);
-      return `Week of ${formatRange(r.from, r.to)}`;
+      return `Week of ${formatDateRange(r.from, r.to)}`;
     }
     case "monthly":
       return `${monthName(entry.date)} ${parts(entry.date).y}`;
