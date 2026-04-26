@@ -186,6 +186,11 @@ export const goalProgress = sqliteTable("goal_progress", {
     .notNull()
     .references(() => goals.id, { onDelete: "cascade" }),
   summaryEntryId: text("summary_entry_id").references(() => entries.id),
+  rangeFrom: text("range_from"),
+  rangeTo: text("range_to"),
+  trajectory: text("trajectory", {
+    enum: ["on_track", "at_risk", "off_track", "achieved", "abandoned"],
+  }),
   assessment: text("assessment").notNull(),
   createdAt: text("created_at")
     .notNull()
@@ -222,3 +227,6 @@ export type NewEntry = typeof entries.$inferInsert;
 export type Domain = typeof domains.$inferSelect;
 export type Template = typeof templates.$inferSelect;
 export type Lens = typeof lenses.$inferSelect;
+export type Goal = typeof goals.$inferSelect;
+export type NewGoal = typeof goals.$inferInsert;
+export type GoalProgress = typeof goalProgress.$inferSelect;

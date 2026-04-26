@@ -59,6 +59,12 @@ export default async function CalendarPage() {
             Lenses
           </Link>
           <Link
+            href="/goals"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Goals
+          </Link>
+          <Link
             href="/settings"
             className="text-sm text-muted-foreground hover:text-foreground"
           >

@@ -32,6 +32,12 @@ export default async function WritePage({
             Lenses
           </Link>
           <Link
+            href="/goals"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Goals
+          </Link>
+          <Link
             href="/settings"
             className="text-sm text-muted-foreground hover:text-foreground"
           >

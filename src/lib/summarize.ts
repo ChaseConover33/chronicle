@@ -150,7 +150,8 @@ export async function summarizePeriod(input: {
   period: SummaryPeriod;
   range: Range;
   modelId?: string;
-}): Promise<{ entryId: string }> {
+  evaluateGoals?: boolean;
+}): Promise<{ entryId: string; goalEvaluations: number }> {
   const result = await generateSummary(input);
   const entryId = persistSummary({
     period: input.period,
@@ -158,5 +159,25 @@ export async function summarizePeriod(input: {
     formattedContent: result.formattedContent,
     sources: result.sources,
   });
-  return { entryId };
+
+  let goalEvaluations = 0;
+  const shouldEvaluateGoals =
+    (input.evaluateGoals ?? true) && input.period === "weekly";
+  if (shouldEvaluateGoals) {
+    try {
+      const { evaluateAllActiveGoals } = await import("./goal-evaluation");
+      const results = await evaluateAllActiveGoals({
+        range: input.range,
+        modelId: input.modelId,
+        summaryEntryId: entryId,
+      });
+      goalEvaluations = results.length;
+    } catch (err) {
+      // Goal eval is best-effort — never block the summary itself.
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`weekly goal evaluation failed: ${message}`);
+    }
+  }
+
+  return { entryId, goalEvaluations };
 }
