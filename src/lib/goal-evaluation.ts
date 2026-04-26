@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, inArray, lte } from "drizzle-orm";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { db } from "@/db";
@@ -237,11 +237,23 @@ export function listActiveGoalsNeedingReflection(): GoalNeedingReflection[] {
   const out: GoalNeedingReflection[] = [];
   for (const goal of active) {
     const latest = getLatestProgress(goal.id);
-    if (latest && (latest.trajectory === "at_risk" || latest.trajectory === "off_track")) {
-      out.push({ goal, latest });
-    }
+    if (!latest) continue;
+    if (latest.trajectory !== "at_risk" && latest.trajectory !== "off_track") continue;
+    if (hasReflectedSince(goal.id, latest.createdAt)) continue;
+    out.push({ goal, latest });
   }
   return out;
+}
+
+function hasReflectedSince(goalId: string, since: string): boolean {
+  const row = db
+    .select({ id: entries.id })
+    .from(entries)
+    .innerJoin(entryGoals, eq(entryGoals.entryId, entries.id))
+    .where(and(eq(entryGoals.goalId, goalId), gt(entries.createdAt, since)))
+    .limit(1)
+    .get();
+  return row != null;
 }
 
 export function tagEntryToGoal(entryId: string, goalId: string): void {

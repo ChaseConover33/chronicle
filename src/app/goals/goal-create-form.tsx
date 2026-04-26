@@ -20,6 +20,16 @@ type Props = {
 };
 
 export function GoalCreateForm({ domains, lenses }: Props) {
+  const domainLabel = (v: unknown) => {
+    if (v === "none" || !v) return "None";
+    const d = domains.find((x) => x.id === v);
+    return d ? `${d.icon} ${d.name}` : "None";
+  };
+  const lensLabel = (v: unknown) => {
+    if (v === "none" || !v) return "None";
+    const l = lenses.find((x) => x.id === v);
+    return l ? l.name : "None";
+  };
   return (
     <Card>
       <CardContent className="p-5">
@@ -59,7 +69,7 @@ export function GoalCreateForm({ domains, lenses }: Props) {
               <Label>Domain (optional)</Label>
               <Select name="domainId" defaultValue="none">
                 <SelectTrigger className="h-9">
-                  <SelectValue />
+                  <SelectValue>{(v) => domainLabel(v)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
@@ -75,7 +85,7 @@ export function GoalCreateForm({ domains, lenses }: Props) {
               <Label>Lens (optional)</Label>
               <Select name="lensId" defaultValue="none">
                 <SelectTrigger className="h-9">
-                  <SelectValue />
+                  <SelectValue>{(v) => lensLabel(v)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>

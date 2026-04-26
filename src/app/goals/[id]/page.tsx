@@ -48,6 +48,12 @@ export default async function GoalDetailPage({
 
   const progress = listGoalProgress(id);
   const taggedEntries = listEntriesForGoal(id);
+  const latestProgress = progress[0];
+  const reflectionPending =
+    latestProgress != null &&
+    (latestProgress.trajectory === "at_risk" ||
+      latestProgress.trajectory === "off_track") &&
+    taggedEntries.some((e) => e.createdAt > latestProgress.createdAt);
   const domain = goal.domainId
     ? db.select().from(domains).where(eq(domains.id, goal.domainId)).get()
     : undefined;
@@ -99,6 +105,12 @@ export default async function GoalDetailPage({
           trajectory. Prior assessments get fed in so it can spot momentum and
           slippage.
         </p>
+        {reflectionPending && (
+          <p className="rounded-md border border-primary/40 bg-primary/5 p-3 text-sm">
+            You&rsquo;ve reflected since the last assessment. Re-evaluate to
+            see if the trajectory has shifted.
+          </p>
+        )}
         <GoalEvaluateButton goalId={goal.id} />
       </section>
 
