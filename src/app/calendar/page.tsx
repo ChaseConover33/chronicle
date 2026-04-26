@@ -1,4 +1,4 @@
-import { desc } from "drizzle-orm";
+import { desc, ne } from "drizzle-orm";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { db } from "@/db";
@@ -14,6 +14,7 @@ export default async function CalendarPage() {
       createdAt: entries.createdAt,
     })
     .from(entries)
+    .where(ne(entries.type, "goal_reflection"))
     .orderBy(desc(entries.createdAt))
     .all();
 

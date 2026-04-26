@@ -245,6 +245,19 @@ export function listActiveGoalsNeedingReflection(): GoalNeedingReflection[] {
   return out;
 }
 
+export function listOnTrackActiveGoals(): GoalNeedingReflection[] {
+  const active = listActiveGoals();
+  const out: GoalNeedingReflection[] = [];
+  for (const goal of active) {
+    const latest = getLatestProgress(goal.id);
+    if (!latest) continue;
+    if (latest.trajectory !== "on_track") continue;
+    if (hasReflectedSince(goal.id, latest.createdAt)) continue;
+    out.push({ goal, latest });
+  }
+  return out;
+}
+
 function hasReflectedSince(goalId: string, since: string): boolean {
   const row = db
     .select({ id: entries.id })

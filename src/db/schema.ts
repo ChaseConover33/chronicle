@@ -7,7 +7,15 @@ export const entries = sqliteTable(
     id: text("id").primaryKey(),
     date: text("date").notNull(),
     type: text("type", {
-      enum: ["daily", "retrospective", "weekly", "monthly", "yearly", "decade"],
+      enum: [
+        "daily",
+        "retrospective",
+        "weekly",
+        "monthly",
+        "yearly",
+        "decade",
+        "goal_reflection",
+      ],
     }).notNull(),
     status: text("status", { enum: ["draft", "published"] })
       .notNull()

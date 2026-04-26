@@ -14,13 +14,15 @@ export async function saveDraftEntry(formData: FormData) {
     redirect("/write");
   }
 
+  const isGoalReflection = !!(goalId && getGoal(goalId));
+
   const id = createEntry({
     date,
-    type: "daily",
+    type: isGoalReflection ? "goal_reflection" : "daily",
     rawText,
   });
 
-  if (goalId && getGoal(goalId)) {
+  if (isGoalReflection && goalId) {
     tagEntryToGoal(id, goalId);
     revalidatePath(`/goals/${goalId}`);
   }

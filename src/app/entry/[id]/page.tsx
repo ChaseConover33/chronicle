@@ -7,10 +7,13 @@ import {
   domains,
   entries,
   entryDomains,
+  entryGoals,
+  goals,
   lensReflections,
   lenses,
   tags,
 } from "@/db/schema";
+import { getLatestProgress } from "@/lib/goal-evaluation";
 import {
   PROVIDERS,
   checkApiProviderAvailability,
@@ -66,6 +69,23 @@ export default async function EntryPage({
     .from(domains)
     .orderBy(asc(domains.sortOrder))
     .all();
+
+  const reflectionGoal =
+    entry.type === "goal_reflection"
+      ? db
+          .select({
+            id: goals.id,
+            title: goals.title,
+            status: goals.status,
+          })
+          .from(goals)
+          .innerJoin(entryGoals, eq(entryGoals.goalId, goals.id))
+          .where(eq(entryGoals.entryId, id))
+          .get()
+      : undefined;
+  const reflectionTrajectory = reflectionGoal
+    ? getLatestProgress(reflectionGoal.id)?.trajectory ?? null
+    : null;
 
   const showCleanupPanel = !entry.formattedContent;
   const autoStart = sp.autoclean === "1";
@@ -140,7 +160,7 @@ export default async function EntryPage({
       <header className="mb-8 flex flex-col gap-2">
         <div className="flex items-center justify-between gap-3">
           <div className="text-sm text-muted-foreground capitalize">
-            {entry.type} · {entry.status}
+            {entry.type.replace(/_/g, " ")} · {entry.status}
             {entry.publishedAt
               ? ` · published ${entry.publishedAt.slice(0, 10)}`
               : ""}
@@ -154,6 +174,22 @@ export default async function EntryPage({
           <p className="text-sm text-muted-foreground">
             Generated {formatGeneratedDate(entry.createdAt)}
           </p>
+        )}
+        {reflectionGoal && (
+          <Link
+            href={`/goals/${reflectionGoal.id}`}
+            className="mt-1 inline-flex items-center gap-2 self-start rounded-md border border-primary/40 bg-primary/5 px-3 py-1.5 text-sm hover:bg-primary/10"
+          >
+            <span className="text-xs uppercase tracking-wide text-primary">
+              On goal
+            </span>
+            <span className="font-medium">{reflectionGoal.title}</span>
+            {reflectionTrajectory && (
+              <span className="text-xs text-muted-foreground">
+                · {reflectionTrajectory.replace(/_/g, " ")} at write-time
+              </span>
+            )}
+          </Link>
         )}
       </header>
 

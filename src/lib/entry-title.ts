@@ -69,9 +69,35 @@ export function formatEntryTitle(
       const decadeStart = Math.floor(y / 10) * 10;
       return `${decadeStart}s`;
     }
+    case "goal_reflection":
+      return `Reflection on ${entry.date}`;
     default:
       return entry.date;
   }
+}
+
+export function entryHeadline(
+  entry: Pick<Entry, "type" | "formattedContent" | "rawText">,
+  maxLength: number = 140,
+): string {
+  if (isSummaryType(entry.type)) return "";
+  const source = (entry.formattedContent ?? entry.rawText ?? "").trim();
+  if (!source) return "";
+
+  const firstHeading = source.match(/^#{1,6}\s+(.+)$/m);
+  if (firstHeading) {
+    const text = firstHeading[1].trim().replace(/[*_`]/g, "");
+    return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+  }
+
+  const prose = source
+    .replace(/^#+\s+.*$/gm, "")
+    .replace(/[*_`>]/g, "")
+    .trim();
+  const oneLine = prose.split(/\n+/).find((l) => l.trim().length > 0) ?? "";
+  return oneLine.length > maxLength
+    ? `${oneLine.slice(0, maxLength - 1)}…`
+    : oneLine;
 }
 
 export function isSummaryType(type: Entry["type"]): boolean {

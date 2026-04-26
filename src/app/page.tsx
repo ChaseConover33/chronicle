@@ -1,15 +1,20 @@
-import { desc } from "drizzle-orm";
+import { desc, ne } from "drizzle-orm";
 import Link from "next/link";
 import { db } from "@/db";
 import { entries } from "@/db/schema";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { listActiveGoalsNeedingReflection } from "@/lib/goal-evaluation";
+import { entryHeadline, formatEntryTitle } from "@/lib/entry-title";
+import {
+  listActiveGoalsNeedingReflection,
+  listOnTrackActiveGoals,
+} from "@/lib/goal-evaluation";
 
 export default async function Home() {
   const recent = await db
     .select()
     .from(entries)
+    .where(ne(entries.type, "goal_reflection"))
     .orderBy(desc(entries.createdAt))
     .limit(5)
     .all();
@@ -17,6 +22,7 @@ export default async function Home() {
   const todayIso = new Date().toISOString().slice(0, 10);
   const wroteToday = recent.some((e) => e.date === todayIso && e.type === "daily");
   const goalsNeedingReflection = listActiveGoalsNeedingReflection();
+  const goalsOnTrack = listOnTrackActiveGoals();
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-10 px-6 py-16">
@@ -71,6 +77,44 @@ export default async function Home() {
           </Link>
         </div>
       </section>
+
+      {goalsOnTrack.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-lg font-medium">Goals on track</h2>
+          <p className="text-sm text-muted-foreground">
+            These are working. Reflect on what&rsquo;s making it click — your
+            response gets tagged so you can revisit the win later.
+          </p>
+          <div className="flex flex-col gap-2">
+            {goalsOnTrack.map(({ goal, latest }) => (
+              <Card
+                key={goal.id}
+                className="border-emerald-300/60 bg-emerald-50/50 dark:bg-emerald-950/20"
+              >
+                <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{goal.title}</span>
+                      <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-[10px] uppercase tracking-wide text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200">
+                        On track
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {latest.assessment}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/write?goal=${goal.id}`}
+                    className={buttonVariants({ variant: "outline", size: "sm" })}
+                  >
+                    Celebrate the win
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
 
       {goalsNeedingReflection.length > 0 && (
         <section className="flex flex-col gap-3">
@@ -130,20 +174,30 @@ export default async function Home() {
           </p>
         ) : (
           <div className="flex flex-col gap-2">
-            {recent.map((e) => (
-              <Link key={e.id} href={`/entry/${e.id}`} className="block">
-                <Card className="transition-colors hover:bg-accent/50">
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div>
-                      <div className="font-medium">{e.date}</div>
-                      <div className="text-xs text-muted-foreground capitalize">
-                        {e.type} · {e.status}
+            {recent.map((e) => {
+              const headline = entryHeadline(e);
+              return (
+                <Link key={e.id} href={`/entry/${e.id}`} className="block">
+                  <Card className="transition-colors hover:bg-accent/50">
+                    <CardContent className="flex flex-col gap-1 p-4">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <div className="font-medium">
+                          {headline || formatEntryTitle(e)}
+                        </div>
+                        {!e.formattedContent && (
+                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
+                            Draft
+                          </span>
+                        )}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                      <div className="text-xs text-muted-foreground">
+                        {e.date} · <span className="capitalize">{e.type.replace(/_/g, " ")}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>

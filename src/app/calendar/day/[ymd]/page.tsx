@@ -5,19 +5,9 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { db } from "@/db";
 import { entries } from "@/db/schema";
+import { entryHeadline } from "@/lib/entry-title";
 
 const YMD = /^\d{4}-\d{2}-\d{2}$/;
-
-function preview(entry: { formattedContent: string | null; rawText: string | null }): string {
-  const source = (entry.formattedContent ?? entry.rawText ?? "").trim();
-  if (!source) return "(empty)";
-  const stripped = source
-    .replace(/^#+\s+.*$/gm, "")
-    .replace(/[*_`>]/g, "")
-    .trim();
-  const oneLine = stripped.split(/\n+/).find((l) => l.trim().length > 0) ?? "";
-  return oneLine.length > 200 ? `${oneLine.slice(0, 197)}…` : oneLine;
-}
 
 export default async function DayPage({
   params,
@@ -71,23 +61,33 @@ export default async function DayPage({
         </p>
       ) : (
         <div className="flex flex-col gap-3">
-          {rows.map((e) => (
-            <Link key={e.id} href={`/entry/${e.id}`} className="block">
-              <Card className="transition-colors hover:bg-accent/50">
-                <CardContent className="flex flex-col gap-1 p-4">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                      {e.type} · {e.status}
+          {rows.map((e) => {
+            const headline = entryHeadline(e, 200);
+            return (
+              <Link key={e.id} href={`/entry/${e.id}`} className="block">
+                <Card className="transition-colors hover:bg-accent/50">
+                  <CardContent className="flex flex-col gap-1 p-4">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                        {e.type.replace(/_/g, " ")} · {e.status}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!e.formattedContent && (
+                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
+                            Draft
+                          </span>
+                        )}
+                        <div className="text-xs text-muted-foreground">
+                          {e.createdAt.slice(11, 16)}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {e.createdAt.slice(11, 16)}
-                    </div>
-                  </div>
-                  <div className="text-sm">{preview(e)}</div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+                    <div className="text-sm">{headline || "(empty)"}</div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
