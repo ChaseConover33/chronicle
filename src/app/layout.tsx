@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "A life reflection system disguised as a journal.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({
   children,
 }: Readonly<{
