@@ -34,10 +34,12 @@ PRESERVE these signature traits — they are the writer, not errors:
 Make these changes when the input genuinely benefits:
 - Fix unambiguous spelling typos ("recieve" → "receive")
 - Remove obvious filler that the writer did not intend ("um", "uh", "like, y'know", repeated false starts where they correct themselves mid-sentence)
+- Collapse redundancy. The writer rambles and circles back to the same point in slightly different words — sometimes three or four times in one braindump. When the writer makes the same point more than once, keep the single clearest expression of it (preferring their sharpest phrasing) and drop the restatements. Do NOT preserve every pass for "completeness". This is one of the most valuable things you do — the writer is explicitly asking you to handle their rambling. BUT: a restatement that adds new nuance, a new example, or a sharper conclusion is not redundancy — keep it. Only collapse when the second pass is genuinely saying the same thing.
 - Add paragraph breaks where separate thoughts run together
 - Reorder when the writer doubles back: if they say A, then go on a tangent, then come back to finish A, you may consolidate A. Do this CONSERVATIVELY.
 - ALWAYS add at least one ## header. Every entry begins with a ## heading. If the braindump covers multiple topics, give each group its own ## heading. If the braindump is one tight topic, give the entry a single descriptive ## heading at the top. Headings should be short phrases the writer would recognize as theirs — drawn from their words and framing — not generic ("## Reflections", "## Thoughts") or corporate ("## Key Takeaways", "## Action Items"). HEADINGS MUST USE TITLE CASE — capitalize the first letter of every significant word ("## The Game Of Work", "## Capital One Productivity", "## 5 Mile Run"). This is the ONE place where you override the writer's lowercase-by-default style: headings are always capitalized even though the writer types in lowercase. Never produce formatted_content without at least one ## heading.
 - Light grammar repair ONLY when the original is genuinely unparseable and the fix is unambiguous. When in doubt, leave it.
+- Drop free-floating musings. The writer's journal is a record of their lived life, not a place for unresolved philosophical wondering. When a passage is purely abstract speculation — riffing on ideas, asking open questions, citing thinkers/articles, exploring concepts — and is NOT tied to something the writer actually did, felt, decided, or experienced that day, omit it from formatted_content entirely. Do NOT try to rescue it into the entry, do NOT keep a trimmed version, do NOT summarize the musing. Just leave it out. Edge cases: (1) if a musing is genuinely tied to a lived event ("at dinner I got into it with Mark about free will, and I keep turning it over — …"), keep the lived event and the writer's actual position, but drop the abstract elaboration. (2) If the ENTIRE braindump is musing with no lived content, produce a very short formatted_content with a single ## heading and one line noting the writer was thinking about <topic> today (drawn from their words), so the entry isn't empty. The summary should describe the lived content only; if there is no lived content, the summary should say the writer spent the day turning over <topic> without resolving it.
 </allowed_changes>
 
 <forbidden_changes>
@@ -71,9 +73,9 @@ You also produce a 2-3 sentence card summary that captures what the entry is act
 
 Rules:
 - 2-3 sentences. Never one. Never four.
-- Third-person, past tense, neutral observer voice ("Reflected on the disconnect between…", "Worked through frustration with…", "Played poker with friends and noticed…"). NOT first-person, NOT second-person, NOT a quote.
+- Subject-less past tense, neutral observer voice — sentences begin with the verb ("Reflected on the disconnect between…", "Worked through frustration with…", "Played poker with friends and noticed…"). NEVER use a subject pronoun: no "he", no "she", no "they", no "the writer", no "the author". NOT first-person ("I"), NOT second-person ("you"), NOT a quote. The summary should read like a glance-able caption of the day, not like someone analyzing the writer from the outside.
 - Cover the BREADTH of the entry, not just the first topic. If the entry covers running, work, and a disagreement with someone, the summary should touch all three.
-- Lead with what the writer was doing or wrestling with, not their conclusion.
+- Lead with what was happening or being wrestled with, not the conclusion.
 - Use specific nouns from the entry (people's names, project names, places) where they ground the summary. Don't strip detail to make it generic.
 - Don't moralize ("important reflection on…"), don't editorialize ("a thoughtful look at…"), don't praise ("a great day where…").
 - Don't include sentences like "the entry discusses" or "the writer talks about" — just describe the content directly.
@@ -92,9 +94,10 @@ Your job:
 - Apply the writer's note to the previous version
 - Keep everything they did NOT ask to change exactly as it was in the previous version. This includes manual edits the writer made before clicking redo.
 - All the same voice-preservation and forbidden-changes rules from the original cleanup still apply (lowercase proper nouns the writer used, stylistic shorthand, missing apostrophes, comma splices, second-person self-address, no added content, no softening, no expanding abbreviations).
+- Continue collapsing redundancy: when the writer makes the same point more than once across the raw braindump, keep only the single clearest expression. Do not reintroduce repeated passes the previous version correctly trimmed.
 - ALWAYS keep at least one ## header. Every refined entry must start with a ## heading. If the writer asks for additional headings, add them; if they ask to remove headings, still keep one descriptive heading at the top. HEADINGS MUST USE TITLE CASE — capitalize the first letter of every significant word ("## The Game Of Work"). Headings are the one place where capitalization overrides the writer's lowercase style.
 - Re-infer suggested_domain_ids based on the resulting content (the writer may have asked for changes that shift what the entry is "about").
-- Re-emit the "summary" field (2-3 sentences, third-person past tense, neutral observer voice, covering the breadth of the refined entry — same rules as the original cleanup).`;
+- Re-emit the "summary" field (2-3 sentences, subject-less past tense — sentences begin with the verb, never use "he"/"she"/"they"/"the writer", never first or second person — covering the breadth of the refined entry; same rules as the original cleanup).`;
 
 const RESULT_SCHEMA = z.object({
   formatted_content: z
@@ -105,7 +108,7 @@ const RESULT_SCHEMA = z.object({
   summary: z
     .string()
     .describe(
-      "A 2-3 sentence card summary of the entry, in third-person past tense, neutral observer voice. Covers the breadth of the entry, not just the first topic. Used on entry-list cards.",
+      "A 2-3 sentence card summary of the entry. Subject-less past tense — sentences begin with the verb (e.g. 'Reflected on…', 'Worked through…'). Never use 'he', 'she', 'they', 'the writer', first person, or second person. Covers the breadth of the entry, not just the first topic. Used on entry-list cards.",
     ),
   suggested_domain_ids: z
     .array(z.string())
@@ -163,14 +166,14 @@ const SUMMARY_ONLY_SYSTEM = `You produce a 2-3 sentence card summary of an exist
 
 Rules:
 - 2-3 sentences. Never one. Never four.
-- Third-person, past tense, neutral observer voice ("Reflected on the disconnect between…", "Worked through frustration with…", "Played poker with friends and noticed…"). NOT first-person, NOT second-person, NOT a quote.
+- Subject-less past tense, neutral observer voice — sentences begin with the verb ("Reflected on the disconnect between…", "Worked through frustration with…", "Played poker with friends and noticed…"). NEVER use a subject pronoun: no "he", no "she", no "they", no "the writer", no "the author". NOT first-person ("I"), NOT second-person ("you"), NOT a quote. The summary should read like a glance-able caption of the day, not like someone analyzing the writer from the outside.
 - Cover the BREADTH of the entry, not just the first section. If the entry covers running, work, and a disagreement, the summary should touch all three.
-- Lead with what the writer was doing or wrestling with, not their conclusion.
+- Lead with what was happening or being wrestled with, not the conclusion.
 - Use specific nouns from the entry (people's names, project names, places) where they ground the summary.
 - Don't moralize, don't editorialize, don't praise, don't include "the entry discusses" framing — just describe the content directly.`;
 
 const SUMMARY_ONLY_SCHEMA = z.object({
-  summary: z.string().describe("2-3 sentence card summary in third-person past tense."),
+  summary: z.string().describe("2-3 sentence card summary. Subject-less past tense, sentences begin with the verb. No 'he'/'she'/'they'/'the writer', no first or second person."),
 });
 
 export async function summarizeFormatted(
