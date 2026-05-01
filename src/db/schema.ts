@@ -24,7 +24,7 @@ export const entries = sqliteTable(
     rawText: text("raw_text"),
     formattedContent: text("formatted_content"),
     summary: text("summary"),
-    insights: text("insights", { mode: "json" }).$type<Insight[]>(),
+    insights: text("insights", { mode: "json" }).$type<unknown[]>(),
     createdAt: text("created_at")
       .notNull()
       .default(sql`(datetime('now'))`),

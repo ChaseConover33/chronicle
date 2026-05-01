@@ -22,6 +22,7 @@
     "@ai-sdk/xai": "^3.0.83",
     "@anthropic-ai/sdk": "^0.91.0",
     "@base-ui/react": "^1.4.1",
+    "@clerk/nextjs": "^7.2.9",
     "ai": "^6.0.168",
     "ai-sdk-ollama": "^3.8.3",
     "better-sqlite3": "^12.9.0",
