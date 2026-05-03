@@ -43,9 +43,12 @@ Summary Layer     →  Daily → Weekly → Monthly → Yearly → Decade
 - **Frontend:** Next.js + shadcn/ui + Tailwind
 - **Database:** SQLite
 - **AI:** Claude API (entry cleanup, summarization, cross-referencing, lens analysis)
-- **Deployment:** Docker on Raspberry Pi, behind Caddy reverse proxy
+- **Auth:** Clerk (Phase 1: single-user, allowlisted)
+- **Deployment:** Docker on Raspberry Pi, exposed via Cloudflare Tunnel directly (does *not* sit behind the homelab's Caddy)
 - **Public display:** Eventually integrated with [chaseconover.com](https://chaseconover.com)
 
 ## Status
 
-Early design phase. Documentation first, code second.
+**Live in production** at https://journal.chaseconover.com (Phase 1: single-user). Image is built by GitHub Actions and published to `ghcr.io/chaseconover33/chronicle:latest`. Service is defined in the [self-hosted](https://github.com/ChaseConover33/self-hosted) homelab repo at `platform/compose/services/chronicle.yml`.
+
+Phase 2 (multi-user) is documented in [multi-user-roadmap.md](docs/multi-user-roadmap.md) but not started.
